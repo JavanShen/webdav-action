@@ -1,0 +1,19 @@
+name: 'WebDAV Upload Action'
+description: 'Upload repository contents to WebDAV server'
+inputs:
+  webdav_url:
+    description: 'WebDAV server URL'
+    required: true
+  username:
+    description: 'WebDAV username'
+    required: true
+  password:
+    description: 'WebDAV password'
+    required: true
+  destination_path:
+    description: 'Destination path on WebDAV server (optional)'
+    required: false
+    default: '/'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

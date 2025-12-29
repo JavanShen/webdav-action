@@ -1,0 +1,24 @@
+name: Test WebDAV Upload
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-webdav-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test WebDAV action
+        uses: ./
+        with:
+          webdav_url: ${{ secrets.WEBDAV_URL }}
+          username: ${{ secrets.WEBDAV_USERNAME }}
+          password: ${{ secrets.WEBDAV_PASSWORD }}
+          destination_path: '/test-upload'

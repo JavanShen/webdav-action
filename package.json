@@ -1,0 +1,25 @@
+{
+  "name": "webdav-upload-action",
+  "version": "1.0.0",
+  "description": "GitHub Action to upload repository contents to WebDAV",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "actions",
+    "webdav",
+    "upload"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "webdav": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
