@@ -25,7 +25,7 @@
 
 ```yaml
 - name: 上传到 WebDAV
-  uses: your-username/webdav-upload-action@v1
+  uses: JavanShen/webdav-upload-action@v1
   with:
     webdav_url: ${{ secrets.WEBDAV_URL }}
     username: ${{ secrets.WEBDAV_USERNAME }}
@@ -36,7 +36,7 @@
 
 ```yaml
 - name: 上传到多个 WebDAV 路径
-  uses: your-username/webdav-upload-action@v1
+  uses: JavanShen/webdav-upload-action@v1
   with:
     webdav_url: ${{ secrets.WEBDAV_URL }}
     username: ${{ secrets.WEBDAV_USERNAME }}

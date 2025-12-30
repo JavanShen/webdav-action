@@ -25,7 +25,7 @@ A GitHub Action that packages your repository contents and uploads them to a Web
 
 ```yaml
 - name: Upload to WebDAV
-  uses: your-username/webdav-upload-action@v1
+  uses: JavanShen/webdav-upload-action@v1
   with:
     webdav_url: ${{ secrets.WEBDAV_URL }}
     username: ${{ secrets.WEBDAV_USERNAME }}
@@ -36,7 +36,7 @@ A GitHub Action that packages your repository contents and uploads them to a Web
 
 ```yaml
 - name: Upload to multiple WebDAV paths
-  uses: your-username/webdav-upload-action@v1
+  uses: JavanShen/webdav-upload-action@v1
   with:
     webdav_url: ${{ secrets.WEBDAV_URL }}
     username: ${{ secrets.WEBDAV_USERNAME }}
