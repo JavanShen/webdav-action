@@ -21,4 +21,4 @@ jobs:
           webdav_url: ${{ secrets.WEBDAV_URL }}
           username: ${{ secrets.WEBDAV_USERNAME }}
           password: ${{ secrets.WEBDAV_PASSWORD }}
-          destination_path: '/test-upload'
+          destination_paths: '/test-upload,/backup,/archive'

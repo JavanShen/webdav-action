@@ -82,7 +82,12 @@ async function run() {
         const webdavUrl = (0, core_1.getInput)('webdav_url', { required: true });
         const username = (0, core_1.getInput)('username', { required: true });
         const password = (0, core_1.getInput)('password', { required: true });
-        const destinationPath = (0, core_1.getInput)('destination_path') || '/';
+        const destinationPathsInput = (0, core_1.getInput)('destination_paths') || '/';
+        // Parse destination paths (comma-separated)
+        const destinationPaths = destinationPathsInput
+            .split(',')
+            .map(path => path.trim())
+            .filter(path => path.length > 0);
         // Package the repository contents into a tar.gz archive
         console.log('Packaging repository contents...');
         await createTarGzArchive('.', 'archive.tar.gz');
@@ -91,11 +96,14 @@ async function run() {
             username,
             password
         });
-        // Upload the archive
-        const archivePath = path.join(destinationPath, 'archive.tar.gz');
-        console.log(`Uploading to ${archivePath}...`);
-        await client.putFileContents(archivePath, fs.createReadStream('archive.tar.gz'));
-        console.log('Upload completed successfully.');
+        // Upload the archive to each destination path
+        for (const destPath of destinationPaths) {
+            const archivePath = path.join(destPath, 'archive.tar.gz');
+            console.log(`Uploading to ${archivePath}...`);
+            await client.putFileContents(archivePath, fs.createReadStream('archive.tar.gz'));
+            console.log(`Successfully uploaded to ${archivePath}`);
+        }
+        console.log(`Upload completed successfully to ${destinationPaths.length} path(s).`);
     }
     catch (error) {
         if (error instanceof Error) {

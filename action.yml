@@ -10,8 +10,8 @@ inputs:
   password:
     description: 'WebDAV password'
     required: true
-  destination_path:
-    description: 'Destination path on WebDAV server (optional)'
+  destination_paths:
+    description: 'Destination paths on WebDAV server (comma-separated, optional)'
     required: false
     default: '/'
 runs:
