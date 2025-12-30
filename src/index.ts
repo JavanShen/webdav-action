@@ -49,11 +49,16 @@ async function run(): Promise<void> {
     const password = getInput('password', { required: true })
     const destinationPathsInput = getInput('destination_paths') || '/'
 
+    console.log(`WebDAV URL: ${webdavUrl}`)
+    console.log(`Destination paths input: ${destinationPathsInput}`)
+
     // Parse destination paths (comma-separated)
     const destinationPaths = destinationPathsInput
       .split(',')
-      .map(path => path.trim())
+      .map(p => p.trim().replace(/^\/+/, '/').replace(/\/+$/, '') || '/')
       .filter(path => path.length > 0)
+
+    console.log(`Parsed destination paths: ${JSON.stringify(destinationPaths)}`)
 
     // Package the repository contents into a tar.gz archive
     console.log('Packaging repository contents...')
@@ -67,13 +72,32 @@ async function run(): Promise<void> {
 
     // Upload the archive to each destination path
     for (const destPath of destinationPaths) {
-      const archivePath = path.join(destPath, 'archive.tar.gz')
-      console.log(`Uploading to ${archivePath}...`)
-      await client.putFileContents(
-        archivePath,
-        fs.createReadStream('archive.tar.gz')
-      )
-      console.log(`Successfully uploaded to ${archivePath}`)
+      try {
+        // Ensure the destination directory exists
+        console.log(`Ensuring directory exists: ${destPath}`)
+        await client.createDirectory(destPath, { recursive: true })
+
+        const archivePath = path.join(destPath, 'archive.tar.gz')
+        console.log(`Uploading to ${archivePath}...`)
+        await client.putFileContents(
+          archivePath,
+          fs.createReadStream('archive.tar.gz')
+        )
+        console.log(`Successfully uploaded to ${archivePath}`)
+      } catch (dirError) {
+        console.warn(
+          `Warning: Could not create directory ${destPath}:`,
+          dirError instanceof Error ? dirError.message : dirError
+        )
+        // Try uploading anyway in case directory already exists
+        const archivePath = path.join(destPath, 'archive.tar.gz')
+        console.log(`Attempting upload to ${archivePath}...`)
+        await client.putFileContents(
+          archivePath,
+          fs.createReadStream('archive.tar.gz')
+        )
+        console.log(`Successfully uploaded to ${archivePath}`)
+      }
     }
 
     console.log(
