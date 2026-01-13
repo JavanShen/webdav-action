@@ -18,3 +18,5 @@ jobs:
           username: ${{ secrets.WEBDAV_USERNAME }}
           password: ${{ secrets.WEBDAV_PASSWORD }}
           destination_paths: '/test-upload,/backup,/archive'
+          archive_name: 'my-repo-backup'
+          include_timestamp: 'true'

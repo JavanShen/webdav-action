@@ -14,6 +14,14 @@ inputs:
     description: 'Destination paths on WebDAV server (comma-separated, optional)'
     required: false
     default: '/'
+  archive_name:
+    description: 'Custom name for the archive file (without extension, optional)'
+    required: false
+    default: 'archive'
+  include_timestamp:
+    description: 'Whether to include timestamp in filename (true/false, optional)'
+    required: false
+    default: 'false'
 runs:
   using: 'node20'
   main: 'dist/index.js'

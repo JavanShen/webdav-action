@@ -18,6 +18,8 @@
 | `username`          | ✅   | WebDAV 服务器用户名                                     |
 | `password`          | ✅   | WebDAV 服务器密码                                       |
 | `destination_paths` | ❌   | WebDAV 服务器上的目标路径列表，用逗号分隔 (默认: `/`)   |
+| `archive_name`      | ❌   | 归档文件的自定义名称 (不含扩展名, 默认: `archive`)      |
+| `include_timestamp` | ❌   | 是否在文件名中包含时间戳 (true/false, 默认: `false`)    |
 
 ## 使用方法
 
@@ -68,7 +70,7 @@
 
 ## 打包内容
 
-Action 会创建一个 `archive.tar.gz` 文件，包含您的仓库内容，但排除以下内容：
+Action 会创建一个 tar.gz 文件 (如果指定了自定义名称)，包含您的仓库内容，但排除以下内容：
 
 - `archive.tar.gz` (输出文件本身)
 - `node_modules/` 目录

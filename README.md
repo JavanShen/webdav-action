@@ -44,6 +44,19 @@ A GitHub Action that packages your repository contents and uploads them to a Web
     destination_paths: '/backup,/archive,/releases'
 ```
 
+### Custom Archive Name with Timestamp
+
+```yaml
+- name: Upload with custom name and timestamp
+  uses: JavanShen/webdav-upload-action@v1
+  with:
+    webdav_url: ${{ secrets.WEBDAV_URL }}
+    username: ${{ secrets.WEBDAV_USERNAME }}
+    password: ${{ secrets.WEBDAV_PASSWORD }}
+    archive_name: 'my-project-backup'
+    include_timestamp: 'true'
+```
+
 ## Setup
 
 ### 1. Prepare Your WebDAV Server
@@ -82,7 +95,9 @@ After successful upload, your WebDAV server will contain:
 
 ```
 /your-path/
-  └── archive.tar.gz (compressed repository contents)
+  └── [archive_name].tar.gz (compressed repository contents)
 ```
+
+The filename will be `[archive_name].tar.gz` if `archive_name` is specified, or `archive_YYYYMMDD_HHMMSS.tar.gz` if `include_timestamp` is enabled.
 
 For multiple paths, the same archive will be uploaded to each specified location.

@@ -27,15 +27,17 @@ async function createTarGzArchive(
     archive.pipe(output)
 
     // Add all files from source directory, excluding certain patterns
+    const ignorePatterns = [
+      outputFile, // Exclude the output archive file itself
+      'node_modules/**',
+      '.git/**',
+      'dist/**',
+      '.github/**'
+    ]
+
     archive.glob('**/*', {
       cwd: sourceDir,
-      ignore: [
-        'archive.tar.gz',
-        'node_modules/**',
-        '.git/**',
-        'dist/**',
-        '.github/**'
-      ]
+      ignore: ignorePatterns
     })
 
     archive.finalize()
@@ -48,9 +50,14 @@ async function run(): Promise<void> {
     const username = getInput('username', { required: true })
     const password = getInput('password', { required: true })
     const destinationPathsInput = getInput('destination_paths') || '/'
+    const archiveName = getInput('archive_name') || 'archive'
+    const includeTimestamp =
+      getInput('include_timestamp')?.toLowerCase() === 'true'
 
     console.log(`WebDAV URL: ${webdavUrl}`)
     console.log(`Destination paths input: ${destinationPathsInput}`)
+    console.log(`Archive name: ${archiveName}`)
+    console.log(`Include timestamp: ${includeTimestamp}`)
 
     // Parse destination paths (comma-separated)
     const destinationPaths = destinationPathsInput
@@ -60,9 +67,27 @@ async function run(): Promise<void> {
 
     console.log(`Parsed destination paths: ${JSON.stringify(destinationPaths)}`)
 
+    // Generate filename with optional timestamp
+    let filename = archiveName
+    if (includeTimestamp) {
+      const now = new Date()
+      const timestamp =
+        now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') +
+        '_' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0')
+      filename = `${archiveName}_${timestamp}`
+    }
+    const archiveFile = `${filename}.tar.gz`
+
+    console.log(`Generated archive filename: ${archiveFile}`)
+
     // Package the repository contents into a tar.gz archive
     console.log('Packaging repository contents...')
-    await createTarGzArchive('.', 'archive.tar.gz')
+    await createTarGzArchive('.', archiveFile)
 
     // Create WebDAV client
     const client = createClient(webdavUrl, {
@@ -77,11 +102,11 @@ async function run(): Promise<void> {
         console.log(`Ensuring directory exists: ${destPath}`)
         await client.createDirectory(destPath, { recursive: true })
 
-        const archivePath = path.join(destPath, 'archive.tar.gz')
+        const archivePath = path.join(destPath, archiveFile)
         console.log(`Uploading to ${archivePath}...`)
         await client.putFileContents(
           archivePath,
-          fs.createReadStream('archive.tar.gz')
+          fs.createReadStream(archiveFile)
         )
         console.log(`Successfully uploaded to ${archivePath}`)
       } catch (dirError) {
@@ -90,11 +115,11 @@ async function run(): Promise<void> {
           dirError instanceof Error ? dirError.message : dirError
         )
         // Try uploading anyway in case directory already exists
-        const archivePath = path.join(destPath, 'archive.tar.gz')
+        const archivePath = path.join(destPath, archiveFile)
         console.log(`Attempting upload to ${archivePath}...`)
         await client.putFileContents(
           archivePath,
-          fs.createReadStream('archive.tar.gz')
+          fs.createReadStream(archiveFile)
         )
         console.log(`Successfully uploaded to ${archivePath}`)
       }
