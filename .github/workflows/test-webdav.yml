@@ -3,6 +3,9 @@ name: Test WebDAV Upload
 on:
   workflow_dispatch:
 
+env:
+  TZ: Asia/Shanghai
+
 jobs:
   test-webdav-upload:
     runs-on: ubuntu-latest
