@@ -2,8 +2,7 @@ name: Test WebDAV Upload
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 9 * * *'
+
 env:
   TZ: Asia/Shanghai
 
