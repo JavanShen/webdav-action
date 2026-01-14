@@ -20,6 +20,6 @@ jobs:
           webdav_url: ${{ secrets.WEBDAV_URL }}
           username: ${{ secrets.WEBDAV_USERNAME }}
           password: ${{ secrets.WEBDAV_PASSWORD }}
-          destination_paths: '/test-upload,/backup,/archive'
+          destination_paths: '/quark/demo,/alipan/demo'
           archive_name: 'my-repo-backup'
           include_timestamp: 'true'
