@@ -22,6 +22,10 @@ inputs:
     description: 'Whether to include timestamp in filename (true/false, optional)'
     required: false
     default: 'false'
+  timeout:
+    description: 'Request timeout in milliseconds'
+    required: false
+    default: '60000'
 runs:
   using: 'node20'
   main: 'dist/index.js'

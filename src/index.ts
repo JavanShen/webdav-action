@@ -53,17 +53,19 @@ async function run(): Promise<void> {
     const archiveName = getInput('archive_name') || 'archive'
     const includeTimestamp =
       getInput('include_timestamp')?.toLowerCase() === 'true'
+    const timeout = parseInt(getInput('timeout') || '60000', 10)
 
     console.log(`WebDAV URL: ${webdavUrl}`)
     console.log(`Destination paths input: ${destinationPathsInput}`)
     console.log(`Archive name: ${archiveName}`)
     console.log(`Include timestamp: ${includeTimestamp}`)
+    console.log(`Timeout: ${timeout}ms`)
 
     // Parse destination paths (comma-separated)
     const destinationPaths = destinationPathsInput
       .split(',')
       .map(p => p.trim().replace(/^\/+/, '/').replace(/\/+$/, '') || '/')
-      .filter(path => path.length > 0)
+      .filter(p => p.length > 0)
 
     console.log(`Parsed destination paths: ${JSON.stringify(destinationPaths)}`)
 
@@ -97,31 +99,62 @@ async function run(): Promise<void> {
 
     // Upload the archive to each destination path
     for (const destPath of destinationPaths) {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeout)
+
       try {
         // Ensure the destination directory exists
         console.log(`Ensuring directory exists: ${destPath}`)
-        await client.createDirectory(destPath, { recursive: true })
+        await client.createDirectory(destPath, {
+          recursive: true,
+          signal: controller.signal
+        })
 
-        const archivePath = path.join(destPath, archiveFile)
+        const archivePath = path.join(destPath, archiveFile).replace(/\\/g, '/')
         console.log(`Uploading to ${archivePath}...`)
         await client.putFileContents(
           archivePath,
-          fs.createReadStream(archiveFile)
+          fs.createReadStream(archiveFile),
+          { signal: controller.signal }
         )
         console.log(`Successfully uploaded to ${archivePath}`)
-      } catch (dirError) {
+      } catch (error) {
+        if ((error as any).name === 'AbortError' || controller.signal.aborted) {
+          throw new Error(
+            `Request timeout: The operation for ${destPath} exceeded ${timeout}ms`
+          )
+        }
+
         console.warn(
-          `Warning: Could not create directory ${destPath}:`,
-          dirError instanceof Error ? dirError.message : dirError
+          `Warning: Could not process ${destPath} directly (trying fallback):`,
+          error instanceof Error ? error.message : error
         )
-        // Try uploading anyway in case directory already exists
-        const archivePath = path.join(destPath, archiveFile)
-        console.log(`Attempting upload to ${archivePath}...`)
-        await client.putFileContents(
-          archivePath,
-          fs.createReadStream(archiveFile)
-        )
-        console.log(`Successfully uploaded to ${archivePath}`)
+
+        // Try uploading anyway in case directory already exists or other non-fatal error
+        try {
+          const archivePath = path
+            .join(destPath, archiveFile)
+            .replace(/\\/g, '/')
+          console.log(`Attempting fallback upload to ${archivePath}...`)
+          await client.putFileContents(
+            archivePath,
+            fs.createReadStream(archiveFile),
+            { signal: controller.signal }
+          )
+          console.log(`Successfully uploaded to ${archivePath}`)
+        } catch (fallbackError) {
+          if (
+            (fallbackError as any).name === 'AbortError' ||
+            controller.signal.aborted
+          ) {
+            throw new Error(
+              `Request timeout: The operation for ${destPath} exceeded ${timeout}ms`
+            )
+          }
+          throw fallbackError
+        }
+      } finally {
+        clearTimeout(timeoutId)
       }
     }
 
@@ -130,7 +163,11 @@ async function run(): Promise<void> {
     )
   } catch (error) {
     if (error instanceof Error) {
-      setFailed(error.message)
+      if (error.name === 'AbortError') {
+        setFailed(`Timeout: The request was cancelled due to timeout.`)
+      } else {
+        setFailed(error.message)
+      }
     } else {
       setFailed('An unknown error occurred')
     }
